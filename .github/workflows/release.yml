@@ -20,7 +20,7 @@ jobs:
       - uses: erlef/setup-beam@v1
         with:
           elixir-version: "1.19.1"
-          otp-version: "28.0"
+          otp-version: "28.1"
 
       - name: Install Hex/Rebar
         run: |
@@ -47,8 +47,24 @@ jobs:
         env:
           FALKORDB_RUN_INTEGRATION: "1"
         run: mix test
+      - name: Detect HEX_API_KEY
+        id: hex_key
+        shell: bash
+        env:
+          HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
+        run: |
+          if [[ -n "${HEX_API_KEY}" ]]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Publish to Hex
+        if: steps.hex_key.outputs.available == 'true'
         env:
           HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
         run: mix hex.publish --yes
+
+      - name: Skip publish (missing HEX_API_KEY)
+        if: steps.hex_key.outputs.available != 'true'
+        run: echo "HEX_API_KEY is not configured; skipping Hex publish."
