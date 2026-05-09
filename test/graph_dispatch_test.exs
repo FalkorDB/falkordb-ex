@@ -37,7 +37,39 @@ defmodule FalkorDB.GraphDispatchTest do
          ]}
 
       {:command, ["GRAPH.MEMORY", "USAGE", "social", "SAMPLES", "10"], _state} ->
-        {:ok, %{"total_graph_sz_mb" => 1}}
+        {:ok,
+         [
+           "total_graph_sz_mb",
+           1,
+           "amortized_node_attributes_by_label_sz_mb",
+           ["Person", 2],
+           "amortized_edge_attributes_by_type_sz_mb",
+           ["KNOWS", 3]
+         ]}
+
+      {:command,
+       [
+         "GRAPH.EXPLAIN",
+         "social",
+         "MATCH (n) RETURN n",
+         "TIMEOUT",
+         "50",
+         "version",
+         "7"
+       ], _state} ->
+        {:ok, ["Results", "ScanGraph"]}
+
+      {:command,
+       [
+         "GRAPH.PROFILE",
+         "social",
+         "MATCH (n) RETURN n",
+         "TIMEOUT",
+         "50",
+         "version",
+         "7"
+       ], _state} ->
+        {:ok, ["Results", "All Node Scan"]}
 
       {:command, ["GRAPH.SLOWLOG", "social"], _state} ->
         {:ok, [[1_700_000_000, "GRAPH.QUERY", "MATCH (n) RETURN n", "1.23"]]}
@@ -104,7 +136,20 @@ defmodule FalkorDB.GraphDispatchTest do
     assert {:ok, second} = Graph.query(graph, "MATCH (n)-[e]->() RETURN n,e")
     assert %Node{} = second.data |> hd() |> Map.fetch!("n")
 
-    assert {:ok, %{"total_graph_sz_mb" => 1}} = Graph.memory_usage(graph, 10)
+    assert {:ok, explain_lines} =
+             Graph.explain(graph, "MATCH (n) RETURN n", timeout: 50, version: 7)
+
+    assert explain_lines == ["Results", "ScanGraph"]
+
+    assert {:ok, profile_lines} =
+             Graph.profile(graph, "MATCH (n) RETURN n", timeout: 50, version: 7)
+
+    assert profile_lines == ["Results", "All Node Scan"]
+
+    assert {:ok, memory_usage} = Graph.memory_usage(graph, 10)
+    assert memory_usage["total_graph_sz_mb"] == 1
+    assert memory_usage["amortized_node_attributes_by_label_sz_mb"] == %{"Person" => 2}
+    assert memory_usage["amortized_edge_attributes_by_type_sz_mb"] == %{"KNOWS" => 3}
     assert {:ok, [%{command: "GRAPH.QUERY"}]} = Graph.slowlog(graph)
     assert {:ok, "OK"} = Graph.slowlog_reset(graph)
     assert {:ok, "PENDING"} = Graph.constraint_create(graph, :unique, :node, "Person", ["id"])
