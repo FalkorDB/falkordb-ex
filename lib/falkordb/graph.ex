@@ -36,16 +36,22 @@ defmodule FalkorDB.Graph do
     execute_query(graph, "GRAPH.RO_QUERY", args)
   end
 
-  @spec explain(t(), String.t()) :: {:ok, [String.t()]} | {:error, term()}
-  def explain(%__MODULE__{} = graph, query) when is_binary(query) do
-    with {:ok, reply} <- graph_command(graph, "GRAPH.EXPLAIN", [query]) do
+  @spec explain(t(), String.t(), keyword() | map() | integer() | nil) ::
+          {:ok, [String.t()]} | {:error, term()}
+  def explain(%__MODULE__{} = graph, query, options \\ nil) when is_binary(query) do
+    args = CommandBuilder.query_arguments(query, options, false)
+
+    with {:ok, reply} <- graph_command(graph, "GRAPH.EXPLAIN", args) do
       {:ok, normalize_lines(reply)}
     end
   end
 
-  @spec profile(t(), String.t()) :: {:ok, [String.t()]} | {:error, term()}
-  def profile(%__MODULE__{} = graph, query) when is_binary(query) do
-    with {:ok, reply} <- graph_command(graph, "GRAPH.PROFILE", [query]) do
+  @spec profile(t(), String.t(), keyword() | map() | integer() | nil) ::
+          {:ok, [String.t()]} | {:error, term()}
+  def profile(%__MODULE__{} = graph, query, options \\ nil) when is_binary(query) do
+    args = CommandBuilder.query_arguments(query, options, false)
+
+    with {:ok, reply} <- graph_command(graph, "GRAPH.PROFILE", args) do
       {:ok, normalize_lines(reply)}
     end
   end
@@ -88,9 +94,12 @@ defmodule FalkorDB.Graph do
 
   @spec memory_usage(t(), non_neg_integer() | nil) :: {:ok, term()} | {:error, term()}
   def memory_usage(%__MODULE__{} = graph, samples \\ nil) do
-    FalkorDB.command(graph.db, [
-      "GRAPH.MEMORY" | CommandBuilder.memory_usage_arguments(graph.name, samples)
-    ])
+    with {:ok, reply} <-
+           FalkorDB.command(graph.db, [
+             "GRAPH.MEMORY" | CommandBuilder.memory_usage_arguments(graph.name, samples)
+           ]) do
+      {:ok, normalize_memory_usage(reply)}
+    end
   end
 
   @spec slowlog(t()) :: {:ok, [map()]} | {:error, term()}
@@ -212,4 +221,39 @@ defmodule FalkorDB.Graph do
   defp normalize_float(value) when is_float(value), do: value
   defp normalize_float(value) when is_integer(value), do: value / 1
   defp normalize_float(value) when is_binary(value), do: String.to_float(value)
+
+  defp normalize_memory_usage(%{} = reply) do
+    reply
+    |> Enum.map(fn {key, value} ->
+      {to_string(key), normalize_memory_usage_value(value)}
+    end)
+    |> Map.new()
+  end
+
+  defp normalize_memory_usage(reply) when is_list(reply) do
+    if map_like_list?(reply) do
+      reply
+      |> Enum.chunk_every(2)
+      |> Enum.reduce(%{}, fn [key, value], acc ->
+        Map.put(acc, to_string(key), normalize_memory_usage_value(value))
+      end)
+    else
+      reply
+    end
+  end
+
+  defp normalize_memory_usage(reply), do: reply
+
+  defp normalize_memory_usage_value(value) when is_map(value) or is_list(value),
+    do: normalize_memory_usage(value)
+
+  defp normalize_memory_usage_value(value), do: value
+
+  defp map_like_list?(list) when is_list(list) do
+    rem(length(list), 2) == 0 and
+      list
+      |> Enum.with_index()
+      |> Enum.filter(fn {_value, index} -> rem(index, 2) == 0 end)
+      |> Enum.all?(fn {key, _index} -> is_binary(key) or is_atom(key) end)
+  end
 end

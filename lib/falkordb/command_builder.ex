@@ -74,10 +74,41 @@ defmodule FalkorDB.CommandBuilder do
     |> maybe_append_with_code(with_code)
   end
 
+  @spec config_set_arguments(keyword() | map()) :: [String.t()]
+  def config_set_arguments(options) when is_list(options) do
+    case options do
+      [] ->
+        raise ArgumentError, "config options cannot be empty"
+
+      list ->
+        Enum.flat_map(list, fn
+          {key, value} ->
+            [to_string(key), to_string(value)]
+
+          other ->
+            raise ArgumentError,
+                  "config options must be a list of {key, value} pairs, got: #{inspect(other)}"
+        end)
+    end
+  end
+
+  def config_set_arguments(%{} = options) do
+    if map_size(options) == 0 do
+      raise ArgumentError, "config options cannot be empty"
+    end
+
+    options
+    |> Enum.sort_by(fn {key, _value} -> to_string(key) end)
+    |> Enum.flat_map(fn {key, value} -> [to_string(key), to_string(value)] end)
+  end
+
   defp extract_query_options(options) do
     getter =
       if is_list(options) do
-        fn key -> Keyword.get(options, key) end
+        fn
+          key when is_atom(key) -> Keyword.get(options, key)
+          _key -> nil
+        end
       else
         fn key -> Map.get(options, key) end
       end

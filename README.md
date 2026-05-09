@@ -46,6 +46,11 @@ The client includes wrappers for the FalkorDB 4.18.3 module command surface:
 - Schema/admin: `GRAPH.CONSTRAINT`, `GRAPH.SLOWLOG`, `GRAPH.MEMORY`, `GRAPH.CONFIG`, `GRAPH.LIST`, `GRAPH.INFO`
 - Advanced/admin: `GRAPH.DEBUG`, `GRAPH.UDF`
 Compact parsing includes graph entities and temporal types (`datetime`, `date`, `time`, `duration`).
+
+Additional API behavior:
+- `FalkorDB.config_set/2` supports setting multiple options in one call via keyword lists or maps, matching `GRAPH.CONFIG SET <NAME> <VALUE> [<NAME> <VALUE> ...]`.
+- `FalkorDB.Graph.explain/3` and `FalkorDB.Graph.profile/3` accept the same query option style as `query/3` (for example `timeout` and `version`).
+- `FalkorDB.Graph.memory_usage/2` normalizes responses into a stable map shape across RESP2/RESP3.
 ## Test coverage
 Test coverage includes both fast unit tests and opt-in integration tests:
 - Unit tests cover command dispatch/building, query parameter serialization, compact parser behavior, and schema cache metadata resolution paths.

@@ -88,6 +88,12 @@ defmodule FalkorDB do
     command(db, ["GRAPH.CONFIG", "SET", key, to_string(value)])
   end
 
+  @spec config_set(t(), keyword() | map()) :: {:ok, term()} | {:error, term()}
+  def config_set(%__MODULE__{} = db, options) when is_list(options) or is_map(options) do
+    args = CommandBuilder.config_set_arguments(options)
+    command(db, ["GRAPH.CONFIG", "SET" | args])
+  end
+
   @spec info(t(), [String.t()] | String.t() | nil) :: {:ok, term()} | {:error, term()}
   def info(db, sections \\ nil)
 

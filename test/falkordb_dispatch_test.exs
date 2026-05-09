@@ -15,6 +15,9 @@ defmodule FalkorDB.DispatchTest do
       {:command, ["GRAPH.CONFIG", "SET", "RESULTSET_SIZE", "200"], _state} ->
         {:ok, "OK"}
 
+      {:command, ["GRAPH.CONFIG", "SET", "RESULTSET_SIZE", "200", "TIMEOUT", "100"], _state} ->
+        {:ok, "OK"}
+
       {:command, ["GRAPH.INFO"], _state} ->
         {:ok, ["# Running queries", []]}
 
@@ -46,6 +49,8 @@ defmodule FalkorDB.DispatchTest do
     assert {:ok, ["a", "b"]} = FalkorDB.list(db)
     assert {:ok, _} = FalkorDB.config_get(db, "RESULTSET_SIZE")
     assert {:ok, "OK"} = FalkorDB.config_set(db, "RESULTSET_SIZE", 200)
+    assert {:ok, "OK"} = FalkorDB.config_set(db, RESULTSET_SIZE: 200, TIMEOUT: 100)
+    assert {:ok, "OK"} = FalkorDB.config_set(db, %{"TIMEOUT" => 100, "RESULTSET_SIZE" => 200})
     assert {:ok, _} = FalkorDB.info(db)
     assert {:ok, _} = FalkorDB.info(db, "RunningQueries")
     assert {:ok, "OK"} = FalkorDB.udf_load(db, "lib", "function f() {}", replace: true)
