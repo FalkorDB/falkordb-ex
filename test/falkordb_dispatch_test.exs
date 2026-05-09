@@ -4,7 +4,7 @@ defmodule FalkorDB.DispatchTest do
   alias FalkorDB
   alias FalkorDB.TestSupport.FakeAdapter
 
-  test "dispatches db-level commands including udf, debug, acl, and password" do
+  test "dispatches db-level commands including udf and debug" do
     responder = fn
       {:command, ["GRAPH.LIST"], _state} ->
         {:ok, ["a", "b"]}
@@ -36,12 +36,6 @@ defmodule FalkorDB.DispatchTest do
       {:command, ["GRAPH.DEBUG", "AUX", "START"], _state} ->
         {:ok, 1}
 
-      {:command, ["GRAPH.ACL", "GETUSER", "alice"], _state} ->
-        {:ok, %{}}
-
-      {:command, ["GRAPH.PASSWORD", "ADD", "secret"], _state} ->
-        {:ok, "OK"}
-
       {:command, command, _state} ->
         {:ok, command}
     end
@@ -59,12 +53,10 @@ defmodule FalkorDB.DispatchTest do
     assert {:ok, "OK"} = FalkorDB.udf_delete(db, "lib")
     assert {:ok, "OK"} = FalkorDB.udf_flush(db)
     assert {:ok, 1} = FalkorDB.debug(db, ["AUX", "START"])
-    assert {:ok, %{}} = FalkorDB.acl(db, ["GETUSER", "alice"])
-    assert {:ok, "OK"} = FalkorDB.set_password(db, :add, "secret")
 
     calls = FakeAdapter.command_calls(pid)
     assert ["GRAPH.LIST"] in calls
     assert ["GRAPH.UDF", "FLUSH"] in calls
-    assert ["GRAPH.PASSWORD", "ADD", "secret"] in calls
+    assert ["GRAPH.DEBUG", "AUX", "START"] in calls
   end
 end

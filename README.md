@@ -1,5 +1,5 @@
 # falkordb-ex
-Elixir client for FalkorDB 4.16.x built on top of [Redix](https://github.com/whatyouhide/redix).
+Elixir client for FalkorDB 4.18.3 built on top of [Redix](https://github.com/whatyouhide/redix).
 V1 supports single-node and sentinel topologies.
 ## Supported FalkorDB deployments
 - Single-node / standalone FalkorDB (`mode: :single`) via URL or host/port.
@@ -40,11 +40,11 @@ IO.inspect(result.data)
   )
 ```
 ## API coverage
-The client includes wrappers for the FalkorDB 4.16.x module command surface:
+The client includes wrappers for the FalkorDB 4.18.3 module command surface:
 - Query: `GRAPH.QUERY`, `GRAPH.RO_QUERY`, `GRAPH.EXPLAIN`, `GRAPH.PROFILE`
 - Graph ops: `GRAPH.DELETE`, `GRAPH.COPY`, `GRAPH.RESTORE`, `GRAPH.EFFECT`, `GRAPH.BULK`
 - Schema/admin: `GRAPH.CONSTRAINT`, `GRAPH.SLOWLOG`, `GRAPH.MEMORY`, `GRAPH.CONFIG`, `GRAPH.LIST`, `GRAPH.INFO`
-- Advanced/admin: `GRAPH.DEBUG`, `GRAPH.ACL`, `GRAPH.PASSWORD`, `GRAPH.UDF`
+- Advanced/admin: `GRAPH.DEBUG`, `GRAPH.UDF`
 Compact parsing includes graph entities and temporal types (`datetime`, `date`, `time`, `duration`).
 ## Test coverage
 Test coverage includes both fast unit tests and opt-in integration tests:

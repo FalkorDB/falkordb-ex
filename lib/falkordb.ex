@@ -1,6 +1,6 @@
 defmodule FalkorDB do
   @moduledoc """
-  Elixir client for FalkorDB 4.16.x using Redix as the Redis transport.
+  Elixir client for FalkorDB 4.18.3 using Redix as the Redis transport.
 
   V1 supports single-node and sentinel topologies.
   """
@@ -105,19 +105,6 @@ defmodule FalkorDB do
     command(db, ["GRAPH.DEBUG" | Enum.map(args, &to_string/1)])
   end
 
-  @spec acl(t(), [String.Chars.t()]) :: {:ok, term()} | {:error, term()}
-  def acl(%__MODULE__{} = db, args) when is_list(args) do
-    command(db, ["GRAPH.ACL" | Enum.map(args, &to_string/1)])
-  end
-
-  @spec set_password(t(), String.t() | atom(), String.t()) :: {:ok, term()} | {:error, term()}
-  def set_password(%__MODULE__{} = db, action, password) when is_binary(password) do
-    [normalized_action, pass] =
-      CommandBuilder.password_arguments(normalize_action(action), password)
-
-    command(db, ["GRAPH.PASSWORD", normalized_action, pass])
-  end
-
   @spec udf_load(t(), String.t(), String.t(), keyword()) :: {:ok, term()} | {:error, term()}
   def udf_load(%__MODULE__{} = db, library_name, script, opts \\ []) do
     replace = Keyword.get(opts, :replace, false)
@@ -158,9 +145,4 @@ defmodule FalkorDB do
 
   defp normalize_string_list(list) when is_list(list), do: Enum.map(list, &to_string/1)
   defp normalize_string_list(_other), do: []
-
-  defp normalize_action(action) when is_atom(action),
-    do: action |> Atom.to_string() |> String.upcase()
-
-  defp normalize_action(action) when is_binary(action), do: String.upcase(action)
 end
