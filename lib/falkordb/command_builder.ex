@@ -74,11 +74,6 @@ defmodule FalkorDB.CommandBuilder do
     |> maybe_append_with_code(with_code)
   end
 
-  @spec password_arguments(String.t(), String.t()) :: [String.t()]
-  def password_arguments(action, password) when is_binary(action) and is_binary(password) do
-    [String.upcase(action), password]
-  end
-
   defp extract_query_options(options) do
     getter =
       if is_list(options) do
