@@ -33,7 +33,7 @@ defmodule FalkorDB.Connection.RedixSentinel do
 
       case Redix.start_link(connection_opts) do
         {:ok, pid} ->
-          {:ok, Connection.with(__MODULE__, pid, :sentinel)}
+          {:ok, Connection.with(__MODULE__, pid, :sentinel, Connection.timeout_from_opts(opts))}
 
         {:error, reason} ->
           {:error,
@@ -43,10 +43,10 @@ defmodule FalkorDB.Connection.RedixSentinel do
   end
 
   @impl true
-  def command(pid, command), do: Redix.command(pid, command)
+  def command(pid, command, timeout), do: Redix.command(pid, command, timeout: timeout)
 
   @impl true
-  def pipeline(pid, commands), do: Redix.pipeline(pid, commands)
+  def pipeline(pid, commands, timeout), do: Redix.pipeline(pid, commands, timeout: timeout)
 
   @impl true
   def stop(pid), do: Redix.stop(pid)
