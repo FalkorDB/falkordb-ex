@@ -8,7 +8,7 @@ defmodule FalkorDB.TestSupport.FakeAdapter do
   def connect(_opts), do: {:error, :not_supported}
 
   @impl true
-  def command(pid, command) do
+  def command(pid, command, _timeout) do
     Agent.get_and_update(pid, fn state ->
       updated = %{state | commands: [command | state.commands]}
       response = invoke_responder(updated.responder, {:command, command, updated})
@@ -17,7 +17,7 @@ defmodule FalkorDB.TestSupport.FakeAdapter do
   end
 
   @impl true
-  def pipeline(pid, commands) do
+  def pipeline(pid, commands, _timeout) do
     Agent.get_and_update(pid, fn state ->
       updated = %{state | pipelines: [commands | state.pipelines]}
       response = invoke_responder(updated.responder, {:pipeline, commands, updated})

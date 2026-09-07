@@ -33,7 +33,7 @@ defmodule FalkorDB.Connection.RedixSingle do
 
     case result do
       {:ok, pid} ->
-        {:ok, Connection.with(__MODULE__, pid, :single)}
+        {:ok, Connection.with(__MODULE__, pid, :single, Connection.timeout_from_opts(opts))}
 
       {:error, reason} ->
         {:error,
@@ -42,10 +42,10 @@ defmodule FalkorDB.Connection.RedixSingle do
   end
 
   @impl true
-  def command(pid, command), do: Redix.command(pid, command)
+  def command(pid, command, timeout), do: Redix.command(pid, command, timeout: timeout)
 
   @impl true
-  def pipeline(pid, commands), do: Redix.pipeline(pid, commands)
+  def pipeline(pid, commands, timeout), do: Redix.pipeline(pid, commands, timeout: timeout)
 
   @impl true
   def stop(pid), do: Redix.stop(pid)
