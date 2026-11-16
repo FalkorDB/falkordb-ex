@@ -54,27 +54,10 @@ defmodule FalkorDB.Connection.RedixSentinel do
 
   @doc false
   def normalize_sentinel_address(address) when is_binary(address) do
-    cond do
-      String.starts_with?(address, "redis://") or String.starts_with?(address, "rediss://") ->
-        {:ok, address}
-
-      true ->
-        case String.split(address, ":", parts: 2) do
-          [host, port] ->
-            case Integer.parse(port) do
-              {port_number, ""} when port_number in 1..65_535 ->
-                {:ok, [host: host, port: port_number]}
-
-              _ ->
-                {:error, {:invalid_port, address}}
-            end
-
-          [host] when host != "" ->
-            {:ok, [host: host, port: 26_379]}
-
-          _ ->
-            {:error, {:invalid_address, address}}
-        end
+    if String.starts_with?(address, "redis://") or String.starts_with?(address, "rediss://") do
+      {:ok, address}
+    else
+      parse_host_port_address(address)
     end
   end
 
@@ -127,4 +110,22 @@ defmodule FalkorDB.Connection.RedixSentinel do
 
   defp maybe_put(opts, _key, nil), do: opts
   defp maybe_put(opts, key, value), do: Keyword.put(opts, key, value)
+
+  defp parse_host_port_address(address) do
+    case String.split(address, ":", parts: 2) do
+      [host, port] -> parse_ported_host(host, port, address)
+      [host] when host != "" -> {:ok, [host: host, port: 26_379]}
+      _ -> {:error, {:invalid_address, address}}
+    end
+  end
+
+  defp parse_ported_host(host, port, original) do
+    case Integer.parse(port) do
+      {port_number, ""} when port_number in 1..65_535 ->
+        {:ok, [host: host, port: port_number]}
+
+      _ ->
+        {:error, {:invalid_port, original}}
+    end
+  end
 end

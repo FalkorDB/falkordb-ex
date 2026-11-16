@@ -1,5 +1,8 @@
 defmodule FalkorDB.TestSupport.IntegrationHelpers do
   @moduledoc false
+
+  alias FalkorDB.Connection.RedixSentinel
+
   @default_test_graph "elixir-test"
 
   @spec integration_enabled?() :: boolean()
@@ -28,7 +31,7 @@ defmodule FalkorDB.TestSupport.IntegrationHelpers do
     |> Enum.map(&String.trim/1)
     |> Enum.reject(&(&1 == ""))
     |> Enum.map(fn endpoint ->
-      case FalkorDB.Connection.RedixSentinel.normalize_sentinel_address(endpoint) do
+      case RedixSentinel.normalize_sentinel_address(endpoint) do
         {:ok, normalized} ->
           normalized
 
