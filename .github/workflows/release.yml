@@ -8,7 +8,7 @@ on:
 
 jobs:
   hex:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     services:
       falkordb:
         image: falkordb/falkordb:latest
@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-      - uses: erlef/setup-beam@ee09b1e59bb240681c382eb1f0abc6a04af72764 # v1
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
         with:
           elixir-version: "1.19.1"
           otp-version: "28.1"
