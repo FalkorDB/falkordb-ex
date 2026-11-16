@@ -150,10 +150,18 @@ defmodule FalkorDB.Integration.StandaloneTest do
                "CREATE VECTOR INDEX FOR (d:Doc) ON (d.embedding) OPTIONS {dimension: 8, similarityFunction: 'cosine'}"
              )
 
+    # Prefer Cypher FULLTEXT DDL: multi-arg db.idx.fulltext.createNodeIndex(label, prop...)
+    # is rejected on newer FalkorDB/edge-rs builds (expected at most 1 argument).
     assert {:ok, _} =
              Graph.query(
                graph,
-               "CALL db.idx.fulltext.createNodeIndex('Doc', 'title', 'body')"
+               "CREATE FULLTEXT INDEX FOR (d:Doc) ON (d.title)"
+             )
+
+    assert {:ok, _} =
+             Graph.query(
+               graph,
+               "CREATE FULLTEXT INDEX FOR (d:Doc) ON (d.body)"
              )
 
     assert {:ok, _} = Graph.query(graph, "CREATE INDEX FOR (p:Place) ON (p.location)")
