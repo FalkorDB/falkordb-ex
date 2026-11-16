@@ -36,7 +36,8 @@ IO.inspect(result.data)
   FalkorDB.connect(
     mode: :sentinel,
     group: "mymaster",
-    sentinels: [{"127.0.0.1", 26_379}, {"127.0.0.1", 26_380}]
+    # Redix-compatible forms: "host:port", {"host", port}, [host: "host", port: port], or redis:// URIs
+    sentinels: ["127.0.0.1:26379", {"127.0.0.1", 26_380}, "redis://127.0.0.1:26381"]
   )
 ```
 ## API coverage
@@ -82,7 +83,7 @@ Coverage highlights:
 - index creation and search (`VECTOR`, `FULLTEXT`, geospatial `RANGE`)
 ### Sentinel
 Environment:
-- `FALKORDB_SENTINELS` (comma-separated `host:port`, example: `127.0.0.1:26379,127.0.0.1:26380`)
+- `FALKORDB_SENTINELS` (comma-separated `host:port` or `redis://` URIs, example: `127.0.0.1:26379,redis://127.0.0.1:26380`)
 - `FALKORDB_SENTINEL_GROUP` (default: `mymaster`)
 Coverage highlights:
 - sentinel discovery and connection
